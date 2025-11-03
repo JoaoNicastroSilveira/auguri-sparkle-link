@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 const Perfil = () => {
-  const { lojista, logout } = useAuth();
+  const { lojista, logout, isTestUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -15,16 +15,21 @@ const Perfil = () => {
     navigate('/');
   };
 
+  const handleSwitchAccount = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-gradient-primary text-primary-foreground p-6 space-y-4">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold">
-            {lojista?.nome.charAt(0)}
+            {lojista?.nome_loja.charAt(0)}
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">{lojista?.nome}</h1>
+            <h1 className="text-xl font-bold">{lojista?.nome_loja}</h1>
             <p className="text-sm opacity-90">{lojista?.cnpj}</p>
           </div>
         </div>
@@ -42,7 +47,7 @@ const Perfil = () => {
           <div className="space-y-3 text-sm">
             <div>
               <span className="text-muted-foreground">Nome:</span>
-              <p className="font-medium">{lojista?.nome}</p>
+              <p className="font-medium">{lojista?.nome_loja}</p>
             </div>
             <div>
               <span className="text-muted-foreground">CNPJ:</span>
@@ -110,9 +115,32 @@ const Perfil = () => {
           </div>
         </div>
 
+        {/* Test User Actions */}
+        {isTestUser && (
+          <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 text-orange-700 dark:text-orange-400">
+              <span className="text-lg">🔧</span>
+              <span className="font-semibold text-sm">Modo de Desenvolvimento</span>
+            </div>
+            <p className="text-xs text-orange-600 dark:text-orange-500">
+              Você está usando um usuário de teste. Clique abaixo para testar login/cadastro.
+            </p>
+            <Button
+              onClick={handleSwitchAccount}
+              variant="outline"
+              className="w-full border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+            >
+              Trocar de Conta
+            </Button>
+          </div>
+        )}
+
         {/* About & Help */}
         <div className="bg-card rounded-xl shadow-card divide-y divide-border">
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-muted transition-base">
+          <button 
+            onClick={() => navigate('/debug')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-muted transition-base"
+          >
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
               <span className="text-lg">📖</span>
             </div>

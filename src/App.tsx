@@ -17,6 +17,7 @@ import Favoritos from "./pages/Favoritos";
 import Pedido from "./pages/Pedido";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
+import Debug from './pages/Debug';
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/pedido" element={<Pedido />} />
                 <Route path="/perfil" element={<Perfil />} />
+                <Route path="/debug" element={<Debug />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
