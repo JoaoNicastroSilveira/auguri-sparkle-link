@@ -17,8 +17,8 @@ import Favoritos from "./pages/Favoritos";
 import Pedido from "./pages/Pedido";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
-import Debug from './pages/Debug';
 import VisualSearchResults from './pages/VisualSearchResults';
+import Debug from './pages/Debug';
 
 const queryClient = new QueryClient();
 
