@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, Bell, SlidersHorizontal } from 'lucide-react';
 import { mockProducts, categorias } from '@/data/mockProducts';
 import ProductCard from '@/components/catalog/ProductCard';
@@ -17,6 +17,41 @@ const Catalogo = () => {
   const [sortBy, setSortBy] = useState('recentes');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle scroll to show/hide filters
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Clear any existing timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // If scrolling down and past 50px, hide filters
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setShowFilters(false);
+      } 
+      // If scrolling up, show filters
+      else if (currentScrollY < lastScrollY) {
+        setShowFilters(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [lastScrollY]);
 
   const filteredProducts = useMemo(() => {
     let filtered = mockProducts;
@@ -97,7 +132,13 @@ const Catalogo = () => {
       </header>
 
       {/* Categories */}
-      <div className="sticky top-[140px] z-30 bg-background border-b border-border pb-3">
+      <div 
+        className={`sticky top-[140px] z-30 bg-background border-b border-border pb-3 transition-all duration-300 ${
+          showFilters 
+            ? 'translate-y-0 opacity-100' 
+            : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
         <div className="flex gap-2 overflow-x-auto px-4 pt-3 no-scrollbar">
           {categorias.map((cat) => (
             <button
@@ -116,7 +157,13 @@ const Catalogo = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="sticky top-[200px] z-30 bg-background border-b border-border px-4 py-3 flex gap-2">
+      <div 
+        className={`sticky top-[200px] z-30 bg-background border-b border-border px-4 py-3 flex gap-2 transition-all duration-300 ${
+          showFilters 
+            ? 'translate-y-0 opacity-100' 
+            : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
