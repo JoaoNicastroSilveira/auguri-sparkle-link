@@ -18,6 +18,7 @@ import Pedido from "./pages/Pedido";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 import Debug from './pages/Debug';
+import VisualSearchResults from './pages/VisualSearchResults';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="/cadastro" element={<Register />} />
                 <Route path="/pendente" element={<PendingApproval />} />
                 <Route path="/catalogo" element={<Catalogo />} />
+                <Route path="/busca-visual/resultados" element={<VisualSearchResults />} />
                 <Route path="/produto/:id" element={<ProductDetail />} />
                 <Route path="/ar-mock/:id" element={<ARMock />} />
                 <Route path="/favoritos" element={<Favoritos />} />

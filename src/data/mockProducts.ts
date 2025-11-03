@@ -12,6 +12,12 @@ export interface Product {
   estoque: number;
   temAR: boolean;
   created_at: string;
+  // Visual Search fields
+  dominantColor?: [number, number, number];
+  colorPalette?: Array<[number, number, number]>;
+  tags?: string[];
+  metalTone?: 'gold' | 'silver' | 'rose-gold';
+  style?: 'classico' | 'moderno' | 'vintage' | 'delicado';
 }
 
 export const mockProducts: Product[] = [
@@ -29,7 +35,12 @@ export const mockProducts: Product[] = [
     imagens: ['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&h=800&fit=crop'],
     estoque: 15,
     temAR: true,
-    created_at: '2025-01-15'
+    created_at: '2025-01-15',
+    dominantColor: [212, 175, 55],
+    colorPalette: [[212, 175, 55], [240, 230, 140], [184, 134, 11]],
+    tags: ['delicada', 'classica', 'elegante', 'fina'],
+    metalTone: 'gold',
+    style: 'classico'
   },
   {
     id: 'prod_002',
@@ -213,7 +224,12 @@ export const mockProducts: Product[] = [
     imagens: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&h=800&fit=crop'],
     estoque: 30,
     temAR: true,
-    created_at: '2025-01-03'
+    created_at: '2025-01-03',
+    dominantColor: [212, 175, 55],
+    colorPalette: [[212, 175, 55], [255, 215, 0], [218, 165, 32]],
+    tags: ['argola', 'classica', 'versatil', 'diaria'],
+    metalTone: 'gold',
+    style: 'classico'
   },
   {
     id: 'prod_014',

@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Bell, SlidersHorizontal } from 'lucide-react';
+import { Search, Bell, SlidersHorizontal, Camera } from 'lucide-react';
 import { mockProducts, categorias } from '@/data/mockProducts';
 import ProductCard from '@/components/catalog/ProductCard';
 import BottomNav from '@/components/shared/BottomNav';
+import VisualSearchModal from '@/components/visual-search/VisualSearchModal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -19,6 +20,7 @@ const Catalogo = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [visualSearchOpen, setVisualSearchOpen] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle scroll to show/hide filters
@@ -112,6 +114,14 @@ const Catalogo = () => {
               <p className="text-xs text-muted-foreground">DESDE 1970</p>
             </div>
             <div className="flex gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setVisualSearchOpen(true)}
+                className="relative"
+              >
+                <Camera className="w-5 h-5" />
+              </Button>
               <Button size="icon" variant="ghost">
                 <Bell className="w-5 h-5" />
               </Button>
@@ -226,6 +236,8 @@ const Catalogo = () => {
           </div>
         )}
       </div>
+
+      <VisualSearchModal open={visualSearchOpen} onOpenChange={setVisualSearchOpen} />
 
       <BottomNav />
     </div>
