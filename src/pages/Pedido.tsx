@@ -16,7 +16,7 @@ const Pedido = () => {
 
   const formatarPedido = () => {
     let mensagem = `🛍️ *NOVO PEDIDO AUGURI*\n\n`;
-    mensagem += `*Lojista:* ${lojista?.nome_loja}\n`;
+    mensagem += `*Lojista:* ${lojista?.nomeLoja}\n`;
     mensagem += `*CNPJ:* ${lojista?.cnpj}\n`;
     mensagem += `*Contato:* ${lojista?.telefone}\n\n`;
     mensagem += `*PRODUTOS:*\n`;

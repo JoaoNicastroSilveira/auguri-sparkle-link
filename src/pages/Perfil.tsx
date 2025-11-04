@@ -26,10 +26,10 @@ const Perfil = () => {
       <header className="bg-gradient-primary text-primary-foreground p-6 space-y-4">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold">
-            {lojista?.nome_loja.charAt(0)}
+            {lojista?.nomeLoja.charAt(0)}
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">{lojista?.nome_loja}</h1>
+            <h1 className="text-xl font-bold">{lojista?.nomeLoja}</h1>
             <p className="text-sm opacity-90">{lojista?.cnpj}</p>
           </div>
         </div>
@@ -47,7 +47,7 @@ const Perfil = () => {
           <div className="space-y-3 text-sm">
             <div>
               <span className="text-muted-foreground">Nome:</span>
-              <p className="font-medium">{lojista?.nome_loja}</p>
+              <p className="font-medium">{lojista?.nomeLoja}</p>
             </div>
             <div>
               <span className="text-muted-foreground">CNPJ:</span>
@@ -73,7 +73,7 @@ const Perfil = () => {
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Membro desde {new Date(lojista?.created_at || '').toLocaleDateString('pt-BR')}
+            Membro desde {new Date(lojista?.createdAt || '').toLocaleDateString('pt-BR')}
           </p>
         </div>
 

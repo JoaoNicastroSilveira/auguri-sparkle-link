@@ -1,20 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { loginLojista, registerLojista, getLojistas } from '@/utils/storage';
-import { Lojista } from '@/utils/storage';
-import { mockProducts } from '@/data/mockProducts';
-import * as storage from '@/utils/storage';
-
-// Test user para auto-login
-const TEST_USER: Lojista = {
-  id: 'test-user-001',
-  email: 'teste@auguri.com',
-  senha: '123456',
-  nome_loja: 'Joalheria Bella Vista',
-  cnpj: '12.345.678/0001-90',
-  telefone: '(11) 98765-4321',
-  aprovado: true,
-  created_at: '2024-06-10T00:00:00.000Z'
-};
+import { AuthService } from '@/services/authService';
+import { ProductService } from '@/services/productService';
+import { OrderService } from '@/services/orderService';
+import { Lojista } from '@/types/Lojista';
+import { PedidoStatus } from '@/types/Pedido';
 
 interface AuthContextType {
   lojista: Lojista | null;
@@ -35,6 +24,8 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TEST_USER_ID = 'test-user-001';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [lojista, setLojista] = useState<Lojista | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -42,77 +33,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Inicializar dados mockados se não existirem
-        const produtos = await storage.getProdutos();
-        if (produtos.length === 0) {
-          await storage.saveProdutos(mockProducts);
-        }
+        // Inicializar test user
+        const testUser = AuthService.initTestUser();
+        
+        // Garantir que os produtos estão carregados
+        ProductService.getAll();
 
-        // Inicializar lojistas com TEST_USER
-        const lojistas = await getLojistas();
-        if (lojistas.length === 0) {
-          localStorage.setItem('lojistas', JSON.stringify([TEST_USER]));
-        }
-
-        // Criar pedidos de exemplo para TEST_USER
-        const pedidosExistentes = await storage.getAllPedidos();
-        if (pedidosExistentes.length === 0) {
-          const pedidosExemplo = [
-            {
-              id: 'order_001',
-              lojista_id: TEST_USER.id,
-              lojista_nome: TEST_USER.nome_loja,
-              produtos: [
-                { produto_id: 'prod_001', nome: 'Gargantilha Veneziana', referencia: 'GAR-VEN-001', quantidade: 2 },
-                { produto_id: 'prod_007', nome: 'Anel Solitário', referencia: 'ANE-SOL-007', quantidade: 1 }
-              ],
-              observacoes: 'Pedido urgente para casamento',
-              status: 'entregue' as const,
-              created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-              id: 'order_002',
-              lojista_id: TEST_USER.id,
-              lojista_nome: TEST_USER.nome_loja,
-              produtos: [
-                { produto_id: 'prod_013', nome: 'Brinco Argola Média', referencia: 'BRI-ARG-013', quantidade: 3 },
-                { produto_id: 'prod_019', nome: 'Pulseira Cartier', referencia: 'PUL-CAR-019', quantidade: 1 }
-              ],
-              observacoes: '',
-              status: 'confirmado' as const,
-              created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-              id: 'order_003',
-              lojista_id: TEST_USER.id,
-              lojista_nome: TEST_USER.nome_loja,
-              produtos: [
-                { produto_id: 'prod_002', nome: 'Gargantilha Cartier', referencia: 'GAR-CAR-002', quantidade: 1 }
-              ],
-              observacoes: 'Cliente VIP - priorizar',
-              status: 'pendente' as const,
-              created_at: new Date().toISOString()
-            }
-          ];
-          localStorage.setItem('pedidos', JSON.stringify(pedidosExemplo));
-          localStorage.setItem(`pedidos:${TEST_USER.id}`, JSON.stringify(['order_001', 'order_002', 'order_003']));
-        }
-
-        // Check for existing session
-        const savedUserId = localStorage.getItem('userId');
-        if (savedUserId) {
-          const lojistas = await getLojistas();
-          const savedLojista = lojistas.find((l: Lojista) => l.id === savedUserId);
-          if (savedLojista) {
-            setLojista(savedLojista);
-            setInitialized(true);
-            return;
+        // Criar pedidos de exemplo se não existirem
+        const existingOrders = OrderService.getByUserId(TEST_USER_ID);
+        if (existingOrders.length === 0) {
+          // Pedido 1 - Entregue
+          OrderService.create(
+            TEST_USER_ID,
+            testUser.nomeLoja,
+            [
+              { produtoId: 'prod_001', nome: 'Gargantilha Veneziana', referencia: 'GAR-VEN-001', quantidade: 2 },
+              { produtoId: 'prod_002', nome: 'Anel Solitário Classic', referencia: 'ANE-SOL-002', quantidade: 1 }
+            ],
+            'Pedido urgente para casamento'
+          );
+          const pedido1 = OrderService.getByUserId(TEST_USER_ID)[0];
+          if (pedido1) {
+            pedido1.createdAt = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+            OrderService.updateStatus(pedido1.id, PedidoStatus.ENTREGUE);
           }
+
+          // Pedido 2 - Confirmado
+          OrderService.create(
+            TEST_USER_ID,
+            testUser.nomeLoja,
+            [
+              { produtoId: 'prod_003', nome: 'Brinco Argola Grande', referencia: 'BRI-ARG-003', quantidade: 3 },
+              { produtoId: 'prod_004', nome: 'Pulseira Cartier', referencia: 'PUL-CAR-004', quantidade: 1 }
+            ]
+          );
+          const pedido2 = OrderService.getByUserId(TEST_USER_ID)[1];
+          if (pedido2) {
+            pedido2.createdAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+            OrderService.updateStatus(pedido2.id, PedidoStatus.CONFIRMADO);
+          }
+
+          // Pedido 3 - Pendente
+          OrderService.create(
+            TEST_USER_ID,
+            testUser.nomeLoja,
+            [
+              { produtoId: 'prod_005', nome: 'Piercing Nariz Delicado', referencia: 'PIE-NAR-005', quantidade: 1 }
+            ],
+            'Cliente VIP - priorizar'
+          );
         }
 
-        // Auto-login com TEST_USER se não houver usuário logado
-        localStorage.setItem('userId', TEST_USER.id);
-        setLojista(TEST_USER);
+        // Verificar se existe usuário salvo
+        const savedUser = AuthService.getCurrentUser();
+        if (savedUser) {
+          setLojista(savedUser);
+        } else {
+          // Auto-login com test user
+          AuthService.setCurrentUser(testUser);
+          setLojista(testUser);
+        }
       } catch (error) {
         console.error('Erro ao inicializar app:', error);
       } finally {
@@ -124,48 +104,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const result = await loginLojista(email, password);
-    
-    if (result.success && result.lojista) {
-      localStorage.setItem('userId', result.lojista.id);
-      setLojista(result.lojista);
+    try {
+      const user = AuthService.login(email, password);
+      if (user) {
+        setLojista(user);
+        return { success: true };
+      }
+      return { success: false, error: 'Email ou senha incorretos' };
+    } catch (error) {
+      return { success: false, error: 'Erro ao fazer login' };
     }
-    
-    return result;
   };
 
   const register = async (data: RegisterData) => {
-    const result = await registerLojista({
-      email: data.email,
-      senha: data.password,
-      nome_loja: data.nome,
-      cnpj: data.cnpj,
-      telefone: data.telefone,
-      aprovado: false
-    });
-    
-    return result;
+    try {
+      const newUser = AuthService.register({
+        email: data.email,
+        senha: data.password,
+        nomeLoja: data.nome,
+        cnpj: data.cnpj,
+        telefone: data.telefone
+      });
+      setLojista(newUser);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Erro ao cadastrar' };
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('userId');
+    AuthService.logout();
     setLojista(null);
   };
 
-  const isTestUser = lojista?.id === TEST_USER.id;
+  const isTestUser = lojista?.id === TEST_USER_ID;
 
   if (!initialized) {
-    return null; // ou um loading spinner
+    return null;
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      lojista, 
-      isAuthenticated: !!lojista, 
+    <AuthContext.Provider value={{
+      lojista,
+      isAuthenticated: !!lojista,
       isTestUser,
-      login, 
-      register, 
-      logout 
+      login,
+      register,
+      logout
     }}>
       {children}
     </AuthContext.Provider>

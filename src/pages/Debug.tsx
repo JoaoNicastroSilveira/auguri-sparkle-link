@@ -94,7 +94,7 @@ const Debug = () => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Nome:</span>
-              <span className="font-medium">{lojista?.nome_loja}</span>
+              <span className="font-medium">{lojista?.nomeLoja}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">ID:</span>

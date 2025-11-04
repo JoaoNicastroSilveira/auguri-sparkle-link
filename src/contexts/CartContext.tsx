@@ -1,16 +1,20 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { CartService } from '@/services/cartService';
+import { ProductService } from '@/services/productService';
+import { useAuth } from './AuthContext';
 import { Product } from '@/data/mockProducts';
 
 export interface CartItem {
   product: Product;
   quantidade: number;
+  cartItemId: string;
 }
 
 interface CartContextType {
   items: CartItem[];
   addItem: (product: Product, quantidade?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantidade: number) => void;
+  removeItem: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantidade: number) => void;
   clearCart: () => void;
   totalItems: number;
   observacoes: string;
@@ -20,63 +24,84 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { lojista } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
-  const [observacoes, setObservacoes] = useState('');
+  const [observacoes, setObservacoesState] = useState('');
 
   useEffect(() => {
-    // Load cart from localStorage
-    const saved = localStorage.getItem('cart');
-    if (saved) {
-      setItems(JSON.parse(saved));
+    if (lojista) {
+      loadCart();
     }
-    const savedObs = localStorage.getItem('cart_observacoes');
-    if (savedObs) {
-      setObservacoes(savedObs);
-    }
-  }, []);
+  }, [lojista]);
 
-  useEffect(() => {
-    // Save cart to localStorage
-    localStorage.setItem('cart', JSON.stringify(items));
-  }, [items]);
-
-  useEffect(() => {
-    localStorage.setItem('cart_observacoes', observacoes);
-  }, [observacoes]);
+  const loadCart = () => {
+    if (!lojista) return;
+    
+    const cartItems = CartService.getItems(lojista.id);
+    const produtos = ProductService.getAll();
+    
+    const itemsWithProducts: CartItem[] = cartItems
+      .map(item => {
+        const produto = produtos.find(p => p.id === item.produtoId);
+        if (!produto) return null;
+        
+        // Convert Produto to Product format
+        const productItem: Product = {
+          ...produto,
+          created_at: produto.createdAt
+        } as Product;
+        
+        return {
+          product: productItem,
+          quantidade: item.quantidade,
+          cartItemId: item.id
+        };
+      })
+      .filter((item): item is CartItem => item !== null);
+    
+    setItems(itemsWithProducts);
+    setObservacoesState(CartService.getObservacoes(lojista.id));
+  };
 
   const addItem = (product: Product, quantidade: number = 1) => {
-    setItems(prevItems => {
-      const existing = prevItems.find(item => item.product.id === product.id);
-      if (existing) {
-        return prevItems.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantidade: item.quantidade + quantidade }
-            : item
-        );
-      }
-      return [...prevItems, { product, quantidade }];
-    });
+    if (!lojista) return;
+    
+    CartService.addItem(lojista.id, product.id, quantidade);
+    loadCart();
   };
 
-  const removeItem = (productId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
+  const removeItem = (cartItemId: string) => {
+    if (!lojista) return;
+    
+    CartService.removeItem(lojista.id, cartItemId);
+    loadCart();
   };
 
-  const updateQuantity = (productId: string, quantidade: number) => {
+  const updateQuantity = (cartItemId: string, quantidade: number) => {
+    if (!lojista) return;
+    
     if (quantidade <= 0) {
-      removeItem(productId);
+      removeItem(cartItemId);
       return;
     }
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.product.id === productId ? { ...item, quantidade } : item
-      )
-    );
+    
+    CartService.updateQuantity(lojista.id, cartItemId, quantidade);
+    loadCart();
   };
 
   const clearCart = () => {
+    if (!lojista) return;
+    
+    CartService.clear(lojista.id);
     setItems([]);
-    setObservacoes('');
+    setObservacoesState('');
+  };
+
+  const setObservacoes = (obs: string) => {
+    if (!lojista) return;
+    
+    CartService.setObservacoes(lojista.id, obs);
+    setObservacoesState(obs);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantidade, 0);

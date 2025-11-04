@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react';
 import { Product } from '@/data/mockProducts';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useCart } from '@/contexts/CartContext';
+import { StockBadge } from '@/components/product/StockBadge';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -14,16 +15,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { addItem } = useCart();
   const favorite = isFavorite(product.id);
-
-  const getStockBadge = () => {
-    if (product.estoque === 0) {
-      return <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded">Sob encomenda</span>;
-    }
-    if (product.estoque <= 3) {
-      return <span className="text-xs px-2 py-1 bg-warning/20 text-warning-foreground rounded">Últimas {product.estoque} unidades</span>;
-    }
-    return <span className="text-xs px-2 py-1 bg-success/20 text-success rounded">Em estoque ({product.estoque})</span>;
-  };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -80,7 +71,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <span className="text-xs bg-gold/20 text-gold px-2 py-1 rounded font-medium">
               {product.material}
             </span>
-            {getStockBadge()}
+            <StockBadge estoque={product.estoque} />
           </div>
 
           <button
